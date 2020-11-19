@@ -60,21 +60,24 @@ const user1 = {
     id: 1,
     name: 'Bob Denver',
     email: 'islandguy@gmail.com',
-    password: 'iloveginger'
+    // password: 'iloveginger'
+    password: '$2a$10$ebK131AnviWi2rohLKnDPOmuW3kzNLSwMTb4QjRBlLYv9odIsEAGW'
 }
 
 const user2 = {
     id: 2,
     name: 'Mary Astor',
     email: 'maltesesparrow@gmail.com',
-    password: 'dontrustmeever'
+    // password: 'dontrustmeever'
+    password: '$2a$10$u1qJmHG53YTJksvc3CuseuB6JfnmJjgA7KyFHi0deqbFWaJaFLw8i'
 }
 
 const user3 = {
     id: 3,
     name: 'Denzel Washington',
     email: 'kingkongaintgot@gmail.com',
-    password: 'crookedcop'
+    // password: 'crookedcop'
+    password: '$2a$10$/pq4olX76wv7hcifBUHwA.WpTF0FIsL6fBlwOBGXK4tX4K6H616N6'
 }
 
 const users = [user1,user2,user3]
@@ -82,6 +85,9 @@ const users = [user1,user2,user3]
 
 const express = require('express')      // we're using request
 const cors=require('cors')              // cors helps us call from other websites.. in particular if we want to run from 127.0.0.1 instead of localhost
+const bcrypt = require('bcrypt-nodejs');
+
+
 const app = express()                   // create the express app
 
 app.use(express.json());                // handles reading json, which we need for set posts
@@ -98,7 +104,16 @@ app.post('/signin',(req, res) => {
     let foundUser = users.find(user => user.email=== bodyEmail);
     
     if (foundUser) {
-        if (foundUser.password ===bodyPassword) {
+        let isPasswordCorrect = false;
+        /* bcrypt.compare(bodyPassword, foundUser.password,function(err,res){
+            console.log(bodyPassword,foundUser.password,res);
+            isPasswordCorrect = res;
+        }); */
+
+        isPasswordCorrect = bcrypt.compareSync(bodyPassword, foundUser.password);       
+        
+        // if (foundUser.password ===bodyPassword) {
+        if (isPasswordCorrect) { 
             let sendUser = {
                 id: foundUser.id,
                 name: foundUser.name,
@@ -116,6 +131,16 @@ app.post('/signin',(req, res) => {
 
 });
 
+    bcrypt.hash('iloveginger', null, null, function(err, hash) {
+        console.log(hash);        
+    }); 
 
+    bcrypt.hash('dontrustmeever', null, null, function(err, hash) {
+        console.log(hash);        
+    }); 
+
+    bcrypt.hash('crookedcop', null, null, function(err, hash) {
+        console.log(hash);        
+    }); 
 
 
