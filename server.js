@@ -56,6 +56,30 @@ const parkingOverflow = {
  */
 const parkingLots = [parkingLakeLouise, parkingMoraineLake, parkingOverflow]
 
+const user1 = {
+    id: 1,
+    name: 'Bob Denver',
+    email: 'islandguy@gmail.com',
+    password: 'iloveginger'
+}
+
+const user2 = {
+    id: 2,
+    name: 'Mary Astor',
+    email: 'maltesesparrow@gmail.com',
+    password: 'dontrustmeever'
+}
+
+const user3 = {
+    id: 3,
+    name: 'Denzel Washington',
+    email: 'kingkongaintgot@gmail.com',
+    password: 'crookedcop'
+}
+
+const users = [user1,user2,user3]
+
+
 const express = require('express')      // we're using request
 const cors=require('cors')              // cors helps us call from other websites.. in particular if we want to run from 127.0.0.1 instead of localhost
 const app = express()                   // create the express app
@@ -67,3 +91,31 @@ var server = app.listen(8082, function(){   // listen on port 8081
     var port = server.address().port
     console.log(`Server started on ${port}`)  // open by showing the port in case I forgot
 })
+
+app.post('/signin',(req, res) => {
+    let bodyEmail = req.body.email;
+    let bodyPassword = req.body.password;
+    let foundUser = users.find(user => user.email=== bodyEmail);
+    
+    if (foundUser) {
+        if (foundUser.password ===bodyPassword) {
+            let sendUser = {
+                id: foundUser.id,
+                name: foundUser.name,
+                email: foundUser.email
+            }
+            res.send(sendUser);
+        }
+        else {
+            res.status(400).send('error logging in');
+        }
+    }
+    else {
+        res.status(400).send('error logging in');  
+    }
+
+});
+
+
+
+
