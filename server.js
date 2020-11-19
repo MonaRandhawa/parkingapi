@@ -96,7 +96,7 @@ app.use(cors());                        // open cors policy... allows us to use 
 var server = app.listen(8082, function(){   // listen on port 8081
     var port = server.address().port
     console.log(`Server started on ${port}`)  // open by showing the port in case I forgot
-})
+});
 
 app.post('/signin',(req, res) => {
     let bodyEmail = req.body.email;
@@ -104,26 +104,28 @@ app.post('/signin',(req, res) => {
     let foundUser = users.find(user => user.email=== bodyEmail);
     
     if (foundUser) {
-        let isPasswordCorrect = false;
-        /* bcrypt.compare(bodyPassword, foundUser.password,function(err,res){
-            console.log(bodyPassword,foundUser.password,res);
-            isPasswordCorrect = res;
-        }); */
-
-        isPasswordCorrect = bcrypt.compareSync(bodyPassword, foundUser.password);       
         
-        // if (foundUser.password ===bodyPassword) {
-        if (isPasswordCorrect) { 
-            let sendUser = {
-                id: foundUser.id,
-                name: foundUser.name,
-                email: foundUser.email
+        let isPasswordCorrect = false;
+        const passwordComparePromise = new Promise((resolve, reject) => {
+            bcrypt.compare(bodyPassword, foundUser.password,function(err,res){
+            resolve(res);
+        })});
+        passwordComparePromise.then(result=>{
+            //console.log to check password compare result
+            console.log(result);
+            isPasswordCorrect = result;
+            if (isPasswordCorrect) { 
+                let sendUser = {
+                    id: foundUser.id,
+                    name: foundUser.name,
+                    email: foundUser.email
+                }
+                res.send(sendUser);
             }
-            res.send(sendUser);
-        }
-        else {
-            res.status(400).send('error logging in');
-        }
+            else {
+                res.status(400).send('error logging in');
+            }
+        });        
     }
     else {
         res.status(400).send('error logging in');  
