@@ -1,9 +1,10 @@
 
 
 const parkingLakeLouise = {
+    id: 1,
     name: "Lake Louise",
     capacity: 15,
-    stallsTaken: 0,
+    stallsOccupied: 0,
     hours: {
         monday: "8:00 - 22:00",
         tuesday: "8:00 - 22:00",
@@ -17,9 +18,10 @@ const parkingLakeLouise = {
 }
 
 const parkingMoraineLake = {
+    id: 2,
     name: "Moraine Lake",
     capacity: 15,
-    stallsTaken: 6,
+    stallsOccupied: 6,
     hours: {
         monday: "8:00 - 22:00",
         tuesday: "8:00 - 22:00",
@@ -33,9 +35,10 @@ const parkingMoraineLake = {
 }
 
 const parkingOverflow = {
+    id: 3,
     name: "Overflow",
     capacity: 15,
-    stallsTaken: 15,
+    stallsOccupied: 15,
     hours: {
         monday: "8:00 - 22:00",
         tuesday: "8:00 - 22:00",
@@ -145,4 +148,22 @@ app.post('/signin',(req, res) => {
         console.log(hash);        
     }); 
 
+    app.patch('/incrementstallsoccupied',function (req,res) {
+        const parkingLotId = req.query.id;
+        const parkingLot = parkingLots.find(parkingLot => parkingLot.id == parkingLotId);
+        if (parkingLot.stallsOccupied != parkingLot.capacity) {
+            parkingLot.stallsOccupied = parkingLot.stallsOccupied + 1;
 
+        }
+        res.send(parkingLot);        
+    })
+
+    app.patch('/decrementstallsoccupied',function (req,res) {
+        const parkingLotId = req.query.id;
+        const parkingLot = parkingLots.find(parkingLot => parkingLot.id == parkingLotId);
+        if (parkingLot.stallsOccupied > 0) {
+            parkingLot.stallsOccupied = parkingLot.stallsOccupied - 1;
+
+        }
+        res.send(parkingLot);        
+    })
