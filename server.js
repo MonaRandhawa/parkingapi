@@ -101,8 +101,16 @@ var server = app.listen(8082, function(){   // listen on port 8081
     console.log(`Server started on ${port}`)  // open by showing the port in case I forgot
 });
 
-app.get('/parkingLots', (req, res) => {
+
+app.get('/parkingLots', (req, res) => { //Getting list of parkingLots endpoint
     res.send(parkingLots);
+});
+
+app.get('/parkingLot', (req, res) => { //Getting a particular parkingLot based on ID
+    const parkingLotId = req.query.id;
+    const parkingLot = parkingLots.find((parkingLot) => 
+        parkingLot.id == parkingLotId);
+    res.send(parkingLot);
 });
 
 app.post('/signin',(req, res) => {
