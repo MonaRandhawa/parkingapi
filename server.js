@@ -15,6 +15,7 @@ const parkingLakeLouise = {
         sunday: "8:00 - 22:00",
     },
     responsible: "007",
+    resetCapacity: 20
 }
 
 const parkingMoraineLake = {
@@ -32,6 +33,7 @@ const parkingMoraineLake = {
         sunday: "8:00 - 22:00",
     },
     responsible: "001",
+    resetCapacity: 30
 }
 
 const parkingOverflow = {
@@ -49,6 +51,7 @@ const parkingOverflow = {
         sunday: "8:00 - 22:00",
     },
     responsible: "002",
+    resetCapacity: 40
 }
 
 /**
@@ -102,16 +105,27 @@ var server = app.listen(8082, function(){   // listen on port 8081
 });
 
 
-app.get('/parkingLots', (req, res) => { //Getting list of parkingLots endpoint
+app.get('/parkinglots', (req, res) => { //Getting list of parkingLots endpoint
     res.send(parkingLots);
 });
 
-app.get('/parkingLot', (req, res) => { //Getting a particular parkingLot based on ID
+app.get('/parkinglot', (req, res) => { //Getting a particular parkingLot based on ID
     const parkingLotId = req.query.id;
     const parkingLot = parkingLots.find((parkingLot) => 
         parkingLot.id == parkingLotId);
     res.send(parkingLot);
 });
+
+app.put('/resetparkinglot', (req, res) => {
+    const parkingLotId = req.query.id;
+    const parkingLot = parkingLots.find((parkingLot) => 
+        parkingLot.id == parkingLotId);
+        
+    parkingLot.capacity = parkingLot.resetCapacity;
+    parkingLot.stallsOccupied = 0;
+
+    res.send(parkingLot);
+})
 
 app.post('/signin',(req, res) => {
     let bodyEmail = req.body.email;
