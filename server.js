@@ -101,6 +101,10 @@ var server = app.listen(8082, function(){   // listen on port 8081
     console.log(`Server started on ${port}`)  // open by showing the port in case I forgot
 });
 
+app.get('/parkingLots', (req, res) => {
+    res.send(parkingLots);
+});
+
 app.post('/signin',(req, res) => {
     let bodyEmail = req.body.email;
     let bodyPassword = req.body.password;
