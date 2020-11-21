@@ -127,6 +127,18 @@ app.put('/resetparkinglot', (req, res) => {
     res.send(parkingLot);
 })
 
+app.patch('/saveparkinglot', (req,res) => {
+    const parkingLotId = req.query.id;
+    const parkingLot = parkingLots.find((parkingLot) => 
+        parkingLot.id == parkingLotId);
+        
+    const bodyParkingLot = req.body;
+    console.log(bodyParkingLot)
+    Object.assign(parkingLot,bodyParkingLot);            
+    res.send(parkingLot);
+    
+})
+
 app.post('/signin',(req, res) => {
     let bodyEmail = req.body.email;
     let bodyPassword = req.body.password;
