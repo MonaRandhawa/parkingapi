@@ -133,7 +133,8 @@ app.patch('/saveparkinglot', (req,res) => {
         parkingLot.id == parkingLotId);
         
     const bodyParkingLot = req.body;
-    console.log(bodyParkingLot)
+    const saveFieldName = Object.keys(bodyParkingLot)[0];
+    bodyParkingLot[saveFieldName] = parseInt(bodyParkingLot[saveFieldName], 10);   
     Object.assign(parkingLot,bodyParkingLot);            
     res.send(parkingLot);
     
