@@ -88,10 +88,14 @@ const user3 = {
 
 const users = [user1,user2,user3]
 
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
 
 const express = require('express')      // we're using request
 const cors=require('cors')              // cors helps us call from other websites.. in particular if we want to run from 127.0.0.1 instead of localhost
 const bcrypt = require('bcrypt-nodejs');
+
+import database from './database.js';
 
 
 const app = express()                   // create the express app
@@ -107,6 +111,14 @@ var server = app.listen(8082, function(){   // listen on port 8081
 
 app.get('/parkinglots', (req, res) => { //Getting list of parkingLots endpoint
     res.send(parkingLots);
+});
+
+app.get('/parkinglotscouch', (req, res) => { //Getting list of parkingLots from database endpoint
+    // Get parking lots from database, and send them in response to a front end fetch
+    database.getParkingLots()
+        .then(parkingLots => {
+            res.send(parkingLots);
+        });    
 });
 
 app.get('/parkinglot', (req, res) => { //Getting a particular parkingLot based on ID
@@ -173,6 +185,42 @@ app.post('/signin',(req, res) => {
         res.status(400).send('error logging in');  
     }
 
+});
+
+app.post('/signincouch',(req, res) => {
+    let bodyEmail = req.body.email;
+    let bodyPassword = req.body.password;
+
+    database.getUserByEmail(bodyEmail)
+    .then(foundUser => {
+        if (foundUser) {
+            
+            let isPasswordCorrect = false;
+            const passwordComparePromise = new Promise((resolve, reject) => {
+                bcrypt.compare(bodyPassword, foundUser.password,function(err,res){
+                resolve(res);
+            })});
+            passwordComparePromise.then(result=>{
+                //console.log to check password compare result
+                console.log(result);
+                isPasswordCorrect = result;
+                if (isPasswordCorrect) { 
+                    let sendUser = {
+                        _id: foundUser._id,
+                        name: foundUser.name,
+                        email: foundUser.email
+                    }
+                    res.send(sendUser);
+                }
+                else {
+                    res.status(400).send('error logging in');
+                }
+            });        
+        }
+        else {
+            res.status(400).send('error logging in');  
+        }
+    });
 });
 
     bcrypt.hash('iloveginger', null, null, function(err, hash) {
