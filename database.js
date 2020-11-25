@@ -17,8 +17,7 @@ module.exports.getParkingLots = async () =>{
           console.log(results.docs);
           return results.docs;
     } 
-    catch(ex)
-    { 
+    catch(ex) { 
         console.log('error for parkinglot find', ex);
     }
 }
@@ -30,8 +29,7 @@ module.exports.getParkingLotById = async (parkingLotId) => {
         console.log('retrieved doc', parkingLot);
         return parkingLot;
     }
-    catch(ex)
-    { 
+    catch(ex) { 
         console.log('error for get document', ex);
     }    
 } 
@@ -52,8 +50,19 @@ module.exports.getUserByEmail = async (email) =>{
 
           return results.docs.length === 1? results.docs[0]:null;
     } 
-    catch(ex)
-    { 
+    catch(ex) { 
         console.log('error for user find', ex);
+    }
+}
+
+
+module.exports.updateParkingLot = async(parkingLot)=>{
+    try {
+        parkingLot.changed = true;
+        // put it back with the change
+        await parkingDb.put(parkingLot); // put a second time this time to update
+    } 
+    catch(ex) { 
+        console.log('error on update', ex); 
     }
 }

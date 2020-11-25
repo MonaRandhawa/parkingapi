@@ -143,19 +143,60 @@ app.put('/resetparkinglot', (req, res) => {
     parkingLot.stallsOccupied = 0;
 
     res.send(parkingLot);
-})
+});
 
-app.patch('/saveparkinglot', (req,res) => {
-    const parkingLotId = req.query.id;
-    const parkingLot = parkingLots.find((parkingLot) => 
-        parkingLot.id == parkingLotId);
+app.put('/resetparkinglotcouch', (req, res) => {
+    const parkingLotId = req.query._id;
+    database.getParkingLotById(parkingLotId)
+    .then(parkingLot => {
+        console.log(parkingLot);
+        parkingLot.capacity = parkingLot.resetCapacity;
+        parkingLot.stallsOccupied = 0;
+
+        database.updateParkingLot(parkingLot)
+        .then(() => {
+            // Get parking lot again from the database to get the latest revision
+            database.getParkingLotById(parkingLotId)
+            .then(parkingLot => {
+                res.send(parkingLot);
+            });
+        });
+    });
+});
+
+// app.patch('/saveparkinglot', (req,res) => {
+//     const parkingLotId = req.query.id;
+//     const parkingLot = parkingLots.find((parkingLot) => 
+//         parkingLot.id == parkingLotId);
         
-    const bodyParkingLot = req.body;
-    const saveFieldName = Object.keys(bodyParkingLot)[0];
-    bodyParkingLot[saveFieldName] = parseInt(bodyParkingLot[saveFieldName], 10);   
-    Object.assign(parkingLot,bodyParkingLot);            
-    res.send(parkingLot);
+//     const bodyParkingLot = req.body;
+//     const saveFieldName = Object.keys(bodyParkingLot)[0];
+//     bodyParkingLot[saveFieldName] = parseInt(bodyParkingLot[saveFieldName], 10);   
+//     Object.assign(parkingLot,bodyParkingLot);            
+//     res.send(parkingLot);
     
+// })
+
+app.patch('/saveparkinglotcouch', (req,res) => {
+    const parkingLotId = req.query._id;
+    database.getParkingLotById(parkingLotId)
+    .then(parkingLot => {
+        console.log(parkingLot);
+
+        const bodyParkingLot = req.body;
+        const saveFieldName = Object.keys(bodyParkingLot)[0];
+        bodyParkingLot[saveFieldName] = parseInt(bodyParkingLot[saveFieldName], 10);   
+        Object.assign(parkingLot,bodyParkingLot); 
+
+        database.updateParkingLot(parkingLot)
+        .then(() => {
+            // Get parking lot again from the database to get the latest revision
+            database.getParkingLotById(parkingLotId)
+            .then(parkingLot => {
+                res.send(parkingLot);
+            });
+        });
+    });   
 })
 
 app.post('/signin',(req, res) => {
@@ -241,22 +282,67 @@ app.post('/signincouch',(req, res) => {
         console.log(hash);        
     }); 
 
-    app.patch('/incrementstallsoccupied',function (req,res) {
-        const parkingLotId = req.query.id;
-        const parkingLot = parkingLots.find(parkingLot => parkingLot.id == parkingLotId);
-        if (parkingLot.stallsOccupied != parkingLot.capacity) {
-            parkingLot.stallsOccupied = parkingLot.stallsOccupied + 1;
+    app.patch('/incrementstallsoccupiedcouch',function (req,res) {
+        const parkingLotId = req.query._id;
+        database.getParkingLotById(parkingLotId)
+        .then(parkingLot => {
+            console.log(parkingLot);
 
-        }
-        res.send(parkingLot);        
-    })
+            if (parkingLot.stallsOccupied != parkingLot.capacity) {
+                parkingLot.stallsOccupied = parkingLot.stallsOccupied + 1;
+    
+            }
+    
+            database.updateParkingLot(parkingLot)
+            .then(() => {
+                // Get parking lot again from the database to get the latest revision
+                database.getParkingLotById(parkingLotId)
+                .then(parkingLot => {
+                    res.send(parkingLot);
+                });
+            });
+        });
+    });
 
-    app.patch('/decrementstallsoccupied',function (req,res) {
-        const parkingLotId = req.query.id;
-        const parkingLot = parkingLots.find(parkingLot => parkingLot.id == parkingLotId);
-        if (parkingLot.stallsOccupied > 0) {
-            parkingLot.stallsOccupied = parkingLot.stallsOccupied - 1;
+    // app.patch('/incrementstallsoccupied',function (req,res) {
+    //     const parkingLotId = req.query.id;
+    //     const parkingLot = parkingLots.find(parkingLot => parkingLot.id == parkingLotId);
+    //     if (parkingLot.stallsOccupied != parkingLot.capacity) {
+    //         parkingLot.stallsOccupied = parkingLot.stallsOccupied + 1;
 
-        }
-        res.send(parkingLot);        
-    })
+    //     }
+    //     res.send(parkingLot);        
+    // })
+
+    // app.patch('/decrementstallsoccupied',function (req,res) {
+    //     const parkingLotId = req.query.id;
+    //     const parkingLot = parkingLots.find(parkingLot => parkingLot.id == parkingLotId);
+    //     if (parkingLot.stallsOccupied > 0) {
+    //         parkingLot.stallsOccupied = parkingLot.stallsOccupied - 1;
+
+    //     }
+    //     res.send(parkingLot);        
+    // })
+
+    app.patch('/decrementstallsoccupiedcouch',function (req,res) {
+        const parkingLotId = req.query._id;
+        database.getParkingLotById(parkingLotId)
+        .then(parkingLot => {
+            console.log(parkingLot);
+
+            if (parkingLot.stallsOccupied > 0) {
+                parkingLot.stallsOccupied = parkingLot.stallsOccupied - 1;
+    
+            }
+    
+            database.updateParkingLot(parkingLot)
+            .then(() => {
+                // Get parking lot again from the database to get the latest revision
+                database.getParkingLotById(parkingLotId)
+                .then(parkingLot => {
+                    res.send(parkingLot);
+                });
+            });
+        });
+    });
+
