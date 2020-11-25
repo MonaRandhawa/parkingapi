@@ -1,13 +1,10 @@
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-
 const pouch = require('pouchdb')
 const parkingDb = pouch('http://admin:admin@127.0.0.1:5984/parking')
 const find = require('pouchdb-find')
 pouch.plugin(find);
 
-const getParkingLots = async () =>{
-    try{
+module.exports.getParkingLots = async () =>{
+    try {
         // get docs that with property of docType equal to parkingLot
         const results = await parkingDb.find({
             selector: {
@@ -19,14 +16,28 @@ const getParkingLots = async () =>{
 
           console.log(results.docs);
           return results.docs;
-    } catch(ex)
+    } 
+    catch(ex)
     { 
-        console.log('error for all_docs', ex)
+        console.log('error for parkinglot find', ex);
     }
 }
 
-const getUserByEmail = async (email) =>{
-    try{
+module.exports.getParkingLotById = async (parkingLotId) => {
+    try {
+        // get the document by its id
+        const parkingLot = await parkingDb.get(parkingLotId);
+        console.log('retrieved doc', parkingLot);
+        return parkingLot;
+    }
+    catch(ex)
+    { 
+        console.log('error for get document', ex);
+    }    
+} 
+
+module.exports.getUserByEmail = async (email) =>{
+    try {
         // get docs that with property of docType equal to parkingLot
         const results = await parkingDb.find({
             selector: {
@@ -40,13 +51,9 @@ const getUserByEmail = async (email) =>{
           console.log(results.docs);
 
           return results.docs.length === 1? results.docs[0]:null;
-    } catch(ex)
+    } 
+    catch(ex)
     { 
-        console.log('error for all_docs', ex)
+        console.log('error for user find', ex);
     }
-}
-
-export default {
-    getParkingLots: getParkingLots,
-    getUserByEmail: getUserByEmail
 }

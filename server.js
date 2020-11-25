@@ -88,14 +88,11 @@ const user3 = {
 
 const users = [user1,user2,user3]
 
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-
 const express = require('express')      // we're using request
 const cors=require('cors')              // cors helps us call from other websites.. in particular if we want to run from 127.0.0.1 instead of localhost
 const bcrypt = require('bcrypt-nodejs');
 
-import database from './database.js';
+const database = require('./database.js');
 
 
 const app = express()                   // create the express app
@@ -126,6 +123,15 @@ app.get('/parkinglot', (req, res) => { //Getting a particular parkingLot based o
     const parkingLot = parkingLots.find((parkingLot) => 
         parkingLot.id == parkingLotId);
     res.send(parkingLot);
+});
+
+app.get('/parkinglotcouch', (req, res) => { //Getting a particular parkingLot based on ID
+    const parkingLotId = req.query._id;
+
+    database.getParkingLotById(parkingLotId)
+        .then(parkingLot => {
+            res.send(parkingLot);
+        })
 });
 
 app.put('/resetparkinglot', (req, res) => {
