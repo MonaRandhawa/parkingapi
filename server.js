@@ -88,10 +88,11 @@ const user3 = {
 
 const users = [user1,user2,user3]
 
-
 const express = require('express')      // we're using request
 const cors=require('cors')              // cors helps us call from other websites.. in particular if we want to run from 127.0.0.1 instead of localhost
 const bcrypt = require('bcrypt-nodejs');
+
+const database = require('./database.js');
 
 
 const app = express()                   // create the express app
@@ -109,11 +110,28 @@ app.get('/parkinglots', (req, res) => { //Getting list of parkingLots endpoint
     res.send(parkingLots);
 });
 
+app.get('/parkinglotscouch', (req, res) => { //Getting list of parkingLots from database endpoint
+    // Get parking lots from database, and send them in response to a front end fetch
+    database.getParkingLots()
+        .then(parkingLots => {
+            res.send(parkingLots);
+        });    
+});
+
 app.get('/parkinglot', (req, res) => { //Getting a particular parkingLot based on ID
     const parkingLotId = req.query.id;
     const parkingLot = parkingLots.find((parkingLot) => 
         parkingLot.id == parkingLotId);
     res.send(parkingLot);
+});
+
+app.get('/parkinglotcouch', (req, res) => { //Getting a particular parkingLot based on ID
+    const parkingLotId = req.query._id;
+
+    database.getParkingLotById(parkingLotId)
+        .then(parkingLot => {
+            res.send(parkingLot);
+        })
 });
 
 app.put('/resetparkinglot', (req, res) => {
@@ -125,19 +143,60 @@ app.put('/resetparkinglot', (req, res) => {
     parkingLot.stallsOccupied = 0;
 
     res.send(parkingLot);
-})
+});
 
-app.patch('/saveparkinglot', (req,res) => {
-    const parkingLotId = req.query.id;
-    const parkingLot = parkingLots.find((parkingLot) => 
-        parkingLot.id == parkingLotId);
+app.put('/resetparkinglotcouch', (req, res) => {
+    const parkingLotId = req.query._id;
+    database.getParkingLotById(parkingLotId)
+    .then(parkingLot => {
+        console.log(parkingLot);
+        parkingLot.capacity = parkingLot.resetCapacity;
+        parkingLot.stallsOccupied = 0;
+
+        database.updateParkingLot(parkingLot)
+        .then(() => {
+            // Get parking lot again from the database to get the latest revision
+            database.getParkingLotById(parkingLotId)
+            .then(parkingLot => {
+                res.send(parkingLot);
+            });
+        });
+    });
+});
+
+// app.patch('/saveparkinglot', (req,res) => {
+//     const parkingLotId = req.query.id;
+//     const parkingLot = parkingLots.find((parkingLot) => 
+//         parkingLot.id == parkingLotId);
         
-    const bodyParkingLot = req.body;
-    const saveFieldName = Object.keys(bodyParkingLot)[0];
-    bodyParkingLot[saveFieldName] = parseInt(bodyParkingLot[saveFieldName], 10);   
-    Object.assign(parkingLot,bodyParkingLot);            
-    res.send(parkingLot);
+//     const bodyParkingLot = req.body;
+//     const saveFieldName = Object.keys(bodyParkingLot)[0];
+//     bodyParkingLot[saveFieldName] = parseInt(bodyParkingLot[saveFieldName], 10);   
+//     Object.assign(parkingLot,bodyParkingLot);            
+//     res.send(parkingLot);
     
+// })
+
+app.patch('/saveparkinglotcouch', (req,res) => {
+    const parkingLotId = req.query._id;
+    database.getParkingLotById(parkingLotId)
+    .then(parkingLot => {
+        console.log(parkingLot);
+
+        const bodyParkingLot = req.body;
+        const saveFieldName = Object.keys(bodyParkingLot)[0];
+        bodyParkingLot[saveFieldName] = parseInt(bodyParkingLot[saveFieldName], 10);   
+        Object.assign(parkingLot,bodyParkingLot); 
+
+        database.updateParkingLot(parkingLot)
+        .then(() => {
+            // Get parking lot again from the database to get the latest revision
+            database.getParkingLotById(parkingLotId)
+            .then(parkingLot => {
+                res.send(parkingLot);
+            });
+        });
+    });   
 })
 
 app.post('/signin',(req, res) => {
@@ -175,6 +234,42 @@ app.post('/signin',(req, res) => {
 
 });
 
+app.post('/signincouch',(req, res) => {
+    let bodyEmail = req.body.email;
+    let bodyPassword = req.body.password;
+
+    database.getUserByEmail(bodyEmail)
+    .then(foundUser => {
+        if (foundUser) {
+            
+            let isPasswordCorrect = false;
+            const passwordComparePromise = new Promise((resolve, reject) => {
+                bcrypt.compare(bodyPassword, foundUser.password,function(err,res){
+                resolve(res);
+            })});
+            passwordComparePromise.then(result=>{
+                //console.log to check password compare result
+                console.log(result);
+                isPasswordCorrect = result;
+                if (isPasswordCorrect) { 
+                    let sendUser = {
+                        _id: foundUser._id,
+                        name: foundUser.name,
+                        email: foundUser.email
+                    }
+                    res.send(sendUser);
+                }
+                else {
+                    res.status(400).send('error logging in');
+                }
+            });        
+        }
+        else {
+            res.status(400).send('error logging in');  
+        }
+    });
+});
+
     bcrypt.hash('iloveginger', null, null, function(err, hash) {
         console.log(hash);        
     }); 
@@ -187,22 +282,67 @@ app.post('/signin',(req, res) => {
         console.log(hash);        
     }); 
 
-    app.patch('/incrementstallsoccupied',function (req,res) {
-        const parkingLotId = req.query.id;
-        const parkingLot = parkingLots.find(parkingLot => parkingLot.id == parkingLotId);
-        if (parkingLot.stallsOccupied != parkingLot.capacity) {
-            parkingLot.stallsOccupied = parkingLot.stallsOccupied + 1;
+    app.patch('/incrementstallsoccupiedcouch',function (req,res) {
+        const parkingLotId = req.query._id;
+        database.getParkingLotById(parkingLotId)
+        .then(parkingLot => {
+            console.log(parkingLot);
 
-        }
-        res.send(parkingLot);        
-    })
+            if (parkingLot.stallsOccupied != parkingLot.capacity) {
+                parkingLot.stallsOccupied = parkingLot.stallsOccupied + 1;
+    
+            }
+    
+            database.updateParkingLot(parkingLot)
+            .then(() => {
+                // Get parking lot again from the database to get the latest revision
+                database.getParkingLotById(parkingLotId)
+                .then(parkingLot => {
+                    res.send(parkingLot);
+                });
+            });
+        });
+    });
 
-    app.patch('/decrementstallsoccupied',function (req,res) {
-        const parkingLotId = req.query.id;
-        const parkingLot = parkingLots.find(parkingLot => parkingLot.id == parkingLotId);
-        if (parkingLot.stallsOccupied > 0) {
-            parkingLot.stallsOccupied = parkingLot.stallsOccupied - 1;
+    // app.patch('/incrementstallsoccupied',function (req,res) {
+    //     const parkingLotId = req.query.id;
+    //     const parkingLot = parkingLots.find(parkingLot => parkingLot.id == parkingLotId);
+    //     if (parkingLot.stallsOccupied != parkingLot.capacity) {
+    //         parkingLot.stallsOccupied = parkingLot.stallsOccupied + 1;
 
-        }
-        res.send(parkingLot);        
-    })
+    //     }
+    //     res.send(parkingLot);        
+    // })
+
+    // app.patch('/decrementstallsoccupied',function (req,res) {
+    //     const parkingLotId = req.query.id;
+    //     const parkingLot = parkingLots.find(parkingLot => parkingLot.id == parkingLotId);
+    //     if (parkingLot.stallsOccupied > 0) {
+    //         parkingLot.stallsOccupied = parkingLot.stallsOccupied - 1;
+
+    //     }
+    //     res.send(parkingLot);        
+    // })
+
+    app.patch('/decrementstallsoccupiedcouch',function (req,res) {
+        const parkingLotId = req.query._id;
+        database.getParkingLotById(parkingLotId)
+        .then(parkingLot => {
+            console.log(parkingLot);
+
+            if (parkingLot.stallsOccupied > 0) {
+                parkingLot.stallsOccupied = parkingLot.stallsOccupied - 1;
+    
+            }
+    
+            database.updateParkingLot(parkingLot)
+            .then(() => {
+                // Get parking lot again from the database to get the latest revision
+                database.getParkingLotById(parkingLotId)
+                .then(parkingLot => {
+                    res.send(parkingLot);
+                });
+            });
+        });
+    });
+
