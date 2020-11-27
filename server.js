@@ -6,7 +6,7 @@ const parkingLakeLouise = {
     capacity: 15,
     stallsOccupied: 0,
     hours: {
-        monday: "8:00 - 22:00",
+        monday: "closed",
         tuesday: "8:00 - 22:00",
         wednesday: "8:00 - 22:00",
         thursday: "8:00 - 22:00",
@@ -24,7 +24,7 @@ const parkingMoraineLake = {
     capacity: 15,
     stallsOccupied: 6,
     hours: {
-        monday: "8:00 - 22:00",
+        monday: "open",
         tuesday: "8:00 - 22:00",
         wednesday: "8:00 - 22:00",
         thursday: "8:00 - 22:00",
@@ -42,7 +42,7 @@ const parkingOverflow = {
     capacity: 15,
     stallsOccupied: 15,
     hours: {
-        monday: "8:00 - 22:00",
+        monday: "construction",
         tuesday: "8:00 - 22:00",
         wednesday: "8:00 - 22:00",
         thursday: "8:00 - 22:00",
