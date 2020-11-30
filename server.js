@@ -3,7 +3,7 @@
 const parkingLakeLouise = {
     id: 1,
     name: "Lake Louise",
-    capacity: 15,
+    capacity: 60,
     stallsOccupied: 0,
     hours: {
         monday: "closed",
